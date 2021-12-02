@@ -57,7 +57,7 @@ if submitted1:
                 nickname=nickname,
                 phone=phone,
                 email=email,
-                url=url,
+                url=[i for i in url],
                 city=city,
                 country=country,
                 org=org,
