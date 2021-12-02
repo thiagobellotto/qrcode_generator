@@ -57,7 +57,7 @@ if submitted1:
                 nickname=nickname,
                 phone=phone,
                 email=email,
-                url=[i for i in url],
+                url=[i for i in url.split(',')],
                 city=city,
                 country=country,
                 org=org,
