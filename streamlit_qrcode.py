@@ -2,10 +2,16 @@
 # coding: utf-8
 
 from segno import helpers
+import datetime
 import streamlit as st
 
-st.set_page_config(layout="centered", page_icon='🐍')
-st.title('Gerador de Cards em QRCode')
+st.set_page_config(layout="centered", page_title='QR Code')
+st.title('Gerador de QR Code')
+st.subheader('''
+        A ferramenta permite gerar QR Code para utilização em WiFi e cartões de visita. 
+        Preencha as informações abaixo e clique em "Gerar" para gerar o QRCode. Ajuste as bordas e tamanho, e então salve o arquivo.
+        As informações que não foram aplicáveis, serão ignoradas.
+''')
 
 footer="""<style>
 a:link , a:visited{
@@ -34,40 +40,64 @@ text-align: center;
 """
 st.markdown(footer, unsafe_allow_html=True)
 
-with st.form('VCard'):
-        name = st.text_input('Nome', ' ')
-        displayname = st.text_input('Nome para display', ' ')
-        nickname = st.text_input('Apelido', ' ')
-        phone = st.text_input('Telefone - Formato recomendado: +55 DD 999999999', '')
-        email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula', ' ')
-        url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula', ' ')
-        city = st.text_input('Cidade', ' ')
-        country = st.text_input('País', ' ')
-        org = st.text_input('Organização', ' ')
-        title = st.text_input('Título', ' ')
-        
-        border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
-        scale = st.slider(label='Selecione o tamanho do QR Code', min_value=5, max_value=10)
-        submitted1 = st.form_submit_button('Gerar QR Code')
+choice = st.radio('Escolha o tipo de QR Code', ('Card de contatos', 'QR Code para WiFi'))
 
-if submitted1:
-        qr = helpers.make_vcard(
-                name=name,
-                displayname=displayname,
-                nickname=nickname,
-                phone=phone,
-                email=[i for i in email.split(',')],
-                url=[i for i in url.split(',')],
-                city=city,
-                country=country,
-                org=org,
-                title=title,
-                )
-        
-        qr_img = qr.save(out='vcard.png', border=border, scale=scale)
-        with open('vcard.png', 'rb') as f:
-                bytes = f.read()
+if choice == 'Card de contatos':
+        with st.form('VCard'):
+                name = st.text_input('Nome', ' ')
+                displayname = st.text_input('Nome para display', ' ')
+                nickname = st.text_input('Apelido', ' ')
+                phone = st.text_input('Telefone - Formato recomendado: +55 DD 999999999', '')
+                email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', ' ')
+                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula', ' ')
+                city = st.text_input('Cidade', ' ')
+                country = st.text_input('País', ' ')
+                org = st.text_input('Organização', ' ')
+                title = st.text_input('Título', ' ')
+                birthday = st.date_input('Data de nascimento', datetime.date(1995, 3, 6))
+                border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
+                scale = st.slider(label='Selecione o tamanho do QR Code', min_value=5, max_value=10)
+                submitted = st.form_submit_button('Gerar QR Code')
+else:
+        with st.form('WiFi'):
+                ssid = st.text_input('Nome do Wifi', ' ')
+                password = st.text_input('Senha', ' ')
+                border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
+                scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
+                submitted = st.form_submit_button('Gerar QR Code')
 
-                st.write('Preview do QR Code')
-                st.image(bytes, caption='Caso queira salvar, clique no botão abaixo')
-                st.download_button(label="Download QR_Code", data=bytes, file_name="vcard.png", mime="image/png")
+if submitted:
+        if choice == 'Card de contatos':
+                qr = helpers.make_vcard(
+                        name=name,
+                        displayname=displayname,
+                        nickname=nickname,
+                        phone=phone,
+                        email=[i for i in email.split(',')],
+                        url=[i for i in url.split(',')],
+                        city=city,
+                        country=country,
+                        org=org,
+                        title=title,
+                        birthday=birthday,
+                        )
+                
+                qr_img = qr.save(out='vcard.png', border=border, scale=scale)
+                with open('vcard.png', 'rb') as f:
+                        bytes_qr = f.read()
+
+                        st.write('Preview do QR Code')
+                        st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
+                        st.download_button(label="Download QR_Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
+        else:
+                wifi = helpers.make_wifi(ssid=ssid, 
+                                        password=password, 
+                                        security='WPA')
+                
+                wifi_img = wifi.save(out='wifi.png', border=border, scale=scale)
+                with open('wifi.png', 'rb') as f:
+                        bytes_wifi = f.read()
+
+                        st.write('Preview do QR Code')
+                        st.image(bytes_wifi, caption='Caso queira salvar, clique no botão abaixo')
+                        st.download_button(label="Download QR_Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
