@@ -39,8 +39,8 @@ with st.form('VCard'):
         displayname = st.text_input('Nome para display', ' ')
         nickname = st.text_input('Apelido', ' ')
         phone = st.text_input('Telefone - Formato recomendado: +55 DD 999999999', '')
-        email = st.text_input('Email', ' ')
-        url = st.text_input('URL', ' ')
+        email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula', ' ')
+        url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula', ' ')
         city = st.text_input('Cidade', ' ')
         country = st.text_input('País', ' ')
         org = st.text_input('Organização', ' ')
@@ -56,15 +56,18 @@ if submitted1:
                 displayname=displayname,
                 nickname=nickname,
                 phone=phone,
-                email=email,
+                email=[i for i in email.split(',')],
                 url=[i for i in url.split(',')],
                 city=city,
                 country=country,
                 org=org,
                 title=title,
-        )
+                )
         
         qr_img = qr.save(out='vcard.png', border=border, scale=scale)
         with open('vcard.png', 'rb') as f:
                 bytes = f.read()
+
+                st.write('Preview do QR Code')
+                st.image(bytes, caption='Caso queira salvar, clique no botão abaixo')
                 st.download_button(label="Download QR_Code", data=bytes, file_name="vcard.png", mime="image/png")
