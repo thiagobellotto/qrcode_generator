@@ -62,6 +62,7 @@ else:
         with st.form('WiFi'):
                 ssid = st.text_input('Nome do Wifi', ' ')
                 password = st.text_input('Senha', ' ')
+                security = st.text_input('Segurança da rede (Usualmente, é WPA ou WPA2)', ' ')
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
@@ -92,7 +93,7 @@ if submitted:
         else:
                 wifi = helpers.make_wifi(ssid=ssid, 
                                         password=password, 
-                                        security='WPA')
+                                        security=security)
                 
                 wifi_img = wifi.save(out='wifi.png', border=border, scale=scale)
                 with open('wifi.png', 'rb') as f:
