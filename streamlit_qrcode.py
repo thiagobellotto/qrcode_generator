@@ -62,7 +62,7 @@ else:
         with st.form('WiFi'):
                 ssid = st.text_input('Nome do Wifi', ' ')
                 password = st.text_input('Senha', ' ')
-                security = st.text_input('Segurança da rede (Usualmente, é WPA ou WPA2)', ' ')
+                security = st.radio('Tipo de segurança', ('Nenhuma', 'WPA2', 'WPA'))
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
