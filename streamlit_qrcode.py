@@ -2,15 +2,15 @@
 # coding: utf-8
 
 from segno import helpers
+import segno
 import datetime
+from unidecode import unidecode
 import streamlit as st
 
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('Gerador de QR Code')
 st.subheader('''
-        A ferramenta permite gerar QR Code para utilização em WiFi e cartões de visita. 
-        Preencha as informações abaixo e clique em "Gerar" para gerar o QRCode. Ajuste as bordas e tamanho, e então salve o arquivo.
-        As informações que não foram aplicáveis, serão ignoradas.
+        A ferramenta permite gerar QR Code para utilização em WiFi e cartões de visita. Preencha as informações abaixo e clique em "Gerar" para gerar o QRCode. Ajuste as bordas e tamanho, e então salve o arquivo. As informações que não foram aplicáveis, serão ignoradas.
 ''')
 
 footer="""<style>
@@ -40,35 +40,54 @@ text-align: center;
 """
 st.markdown(footer, unsafe_allow_html=True)
 
-choice = st.radio('Escolha o tipo de QR Code', ('Card de contatos', 'QR Code para WiFi'))
+card_visita, card_wifi, card_link = 'QR Code para cartão de visita', 'QR Code para WiFi', 'QR Code para links'
 
-if choice == 'Card de contatos':
+choice = st.radio('Escolha o tipo de QR Code', (card_link, card_wifi, card_visita), index=0)
+
+if choice == card_visita:
         with st.form('VCard'):
                 name = st.text_input('Nome', ' ')
-                displayname = st.text_input('Nome para display', ' ')
+                displayname = st.text_input('Nome para display', '')
                 nickname = st.text_input('Apelido', ' ')
-                phone = st.text_input('Telefone - Formato recomendado: +55 DD 999999999', '')
+                phone = st.text_input('Telefone - Formato recomendado: +55 11 999999999', '')
                 email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', ' ')
-                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula', ' ')
+                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula)', ' ')
                 city = st.text_input('Cidade', ' ')
                 country = st.text_input('País', ' ')
                 org = st.text_input('Organização', ' ')
                 title = st.text_input('Título', ' ')
-                birthday = st.date_input('Data de nascimento', datetime.date(1995, 3, 6))
+                birthday = st.date_input('Data de nascimento', None, min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=5, max_value=10)
                 submitted = st.form_submit_button('Gerar QR Code')
-else:
+elif choice == card_wifi:
         with st.form('WiFi'):
                 ssid = st.text_input('Nome do Wifi', ' ')
                 password = st.text_input('Senha', ' ')
-                security = st.radio('Tipo de segurança', ('Nenhuma', 'WPA2', 'WPA'))
+                security = st.radio('Tipo de segurança', ('WPA2 (Padrão)', 'WPA', 'Nenhuma'))
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
+elif choice == card_link:
+        with st.form('Link'):
+                url = st.text_input('Link', ' ')
+                border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
+                scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
+                submitted = st.form_submit_button('Gerar QR Code')
+else:
+        pass
 
 if submitted:
-        if choice == 'Card de contatos':
+        if choice == card_visita:
+                ## Deal with birthday date, if empty
+                if birthday == datetime.date.today():
+                        birthday = None
+
+                ## Deal with punctuation
+                city = unidecode(city)
+                city = unidecode(country)
+                name = unidecode(name)
+
                 qr = helpers.make_vcard(
                         name=name,
                         displayname=displayname,
@@ -90,9 +109,11 @@ if submitted:
                         st.write('Preview do QR Code')
                         st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
                         st.download_button(label="Download QR_Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
-        else:
-                wifi = helpers.make_wifi(ssid=ssid, 
-                                        password=password, 
+        elif choice == card_wifi:
+                if security == 'WPA2 (Padrão)':
+                        security = 'WPA2'
+                wifi = helpers.make_wifi(ssid=ssid,
+                                        password=password,
                                         security=security)
                 
                 wifi_img = wifi.save(out='wifi.png', border=border, scale=scale)
@@ -102,3 +123,17 @@ if submitted:
                         st.write('Preview do QR Code')
                         st.image(bytes_wifi, caption='Caso queira salvar, clique no botão abaixo')
                         st.download_button(label="Download QR_Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
+
+        elif choice == card_link:
+                link = segno.make(url)
+
+                link_img = link.save(out='link.png', border=border, scale=scale)
+                with open('link.png', 'rb') as f:
+                        bytes_link = f.read()
+
+                        st.write('Preview do QR Code')
+                        st.image(bytes_link, caption='Caso queira salvar, clique no botão abaixo')
+                        st.download_button(label="Download QR_Code", data=bytes_link, file_name="link.png", mime="image/png")
+        else:
+                pass
+
