@@ -1,2 +1,3 @@
 streamlit==1.2.0
 segno==1.4.1
+Unidecod==1.3.2
