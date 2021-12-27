@@ -1,4 +1,3 @@
 segno==1.4.1
 Unidecode==1.3.2
-pandas==1.3.5
-gsheetsdb==0.1.13
+google-api-core==2.2.2
