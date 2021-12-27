@@ -9,7 +9,6 @@ import segno
 import datetime
 from unidecode import unidecode
 import json
-import socket
 
 ## Streamlit
 import streamlit as st
@@ -107,12 +106,11 @@ if submitted:
                         with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                         
-                        ip = socket.gethostbyname(socket.gethostname())
                         sheet_name = "VCard"
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
                                         [[name, displayname, nickname, phone, email, url, city, country, org, 
-                                        title, str(birthday), border, scale, str(datetime.date.today()), ip]])
+                                        title, str(birthday), border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
@@ -143,10 +141,9 @@ if submitted:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Wifi"
-                        ip = socket.gethostbyname(socket.gethostname())
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
-                                        [[ssid, password, security, border, scale, str(datetime.date.today()), ip]])
+                                        [[ssid, password, security, border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
@@ -171,9 +168,8 @@ if submitted:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Links"
-                        ip = socket.gethostbyname(socket.gethostname())
                         gsheet_connector = connect_to_gsheet(qr_json)
-                        add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today()), ip]])
+                        add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
