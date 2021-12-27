@@ -103,7 +103,7 @@ if submitted:
                 nickname = unidecode(nickname)
 
                 try:
-                        with open('qr_code.json', 'r') as f:
+                        with open('.streamlit/qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                         
                         sheet_name = "VCard"
@@ -137,7 +137,7 @@ if submitted:
                                 st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
         elif choice == card_wifi:
                 try:
-                        with open('qr_code.json', 'r') as f:
+                        with open('.streamlit/qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Wifi"
@@ -164,7 +164,7 @@ if submitted:
         elif choice == card_link:
 
                 try:
-                        with open('qr_code.json', 'r') as f:
+                        with open('.streamlit/qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Links"
