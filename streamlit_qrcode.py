@@ -9,6 +9,7 @@ import segno
 import datetime
 from unidecode import unidecode
 import json
+import socket
 
 ## Streamlit
 import streamlit as st
@@ -103,14 +104,15 @@ if submitted:
                 nickname = unidecode(nickname)
 
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
-                                
+                        
+                        ip = socket.gethostbyname(socket.gethostname())
                         sheet_name = "VCard"
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
                                         [[name, displayname, nickname, phone, email, url, city, country, org, 
-                                        title, str(birthday), border, scale, str(datetime.date.today())]])
+                                        title, str(birthday), border, scale, str(datetime.date.today()), ip]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
@@ -136,15 +138,15 @@ if submitted:
                                 st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
                                 st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
         elif choice == card_wifi:
-
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Wifi"
+                        ip = socket.gethostbyname(socket.gethostname())
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
-                                        [[ssid, password, security, border, scale, str(datetime.date.today())]])
+                                        [[ssid, password, security, border, scale, str(datetime.date.today()), ip]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
@@ -165,12 +167,13 @@ if submitted:
         elif choice == card_link:
 
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Links"
+                        ip = socket.gethostbyname(socket.gethostname())
                         gsheet_connector = connect_to_gsheet(qr_json)
-                        add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today())]])
+                        add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today()), ip]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
