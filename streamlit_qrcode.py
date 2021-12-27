@@ -18,7 +18,6 @@ def run_query(query):
     return rows
 
 sheet_url = st.secrets["DB_URL"]
-# rows = run_query(f'SELECT * FROM "Links"')
 
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('Gerador de QR Code')
@@ -138,6 +137,7 @@ if submitted:
                         st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
 
         elif choice == card_link:
+                run_query(f'SELECT * FROM "Links"')
                 link = segno.make(url)
 
                 link_img = link.save(out='link.png', border=border, scale=scale)
