@@ -133,7 +133,7 @@ if submitted:
 
                         st.write('Preview do QR Code')
                         st.image(bytes_link, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png", on_click=st.success('Obrigado por usar o QR Code Generator!'))
+                        st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png", on_click='Obrigado por usar o QR Code Generator!')
         else:
                 pass
 
