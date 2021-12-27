@@ -3,9 +3,22 @@
 
 from segno import helpers
 import segno
+import pandas as pd
 import datetime
 from unidecode import unidecode
 import streamlit as st
+from gsheetsdb import connect
+
+# Create a connection object.
+conn = connect()
+
+@st.cache(ttl=600)
+def run_query(query):
+    rows = conn.execute(query, headers=1)
+    return rows
+
+sheet_url = st.secrets["DB_URL"]
+# rows = run_query(f'SELECT * FROM "Links"')
 
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('Gerador de QR Code')
@@ -136,4 +149,3 @@ if submitted:
                         st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png", on_click='Obrigado por usar o QR Code Generator!')
         else:
                 pass
-
