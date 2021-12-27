@@ -108,7 +108,7 @@ if submitted:
 
                         st.write('Preview do QR Code')
                         st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR_Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
+                        st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
         elif choice == card_wifi:
                 if security == 'WPA2 (Padrão)':
                         security = 'WPA2'
@@ -122,7 +122,7 @@ if submitted:
 
                         st.write('Preview do QR Code')
                         st.image(bytes_wifi, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR_Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
+                        st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
 
         elif choice == card_link:
                 link = segno.make(url)
@@ -133,7 +133,7 @@ if submitted:
 
                         st.write('Preview do QR Code')
                         st.image(bytes_link, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR_Code", data=bytes_link, file_name="link.png", mime="image/png")
+                        st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png")
         else:
                 pass
 
