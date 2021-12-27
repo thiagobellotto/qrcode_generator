@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+## QR Code library
 from segno import helpers
 import segno
-import pandas as pd
+
+## Create datetime and handle punctuation
 import datetime
 from unidecode import unidecode
+import json
+
+## Streamlit
 import streamlit as st
 
+## Import google cloud authentication and functions
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from g_connect import connect_to_gsheet, add_row_to_gsheet
+
+## Main settings from page
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('Gerador de QR Code')
 st.subheader('''
@@ -88,53 +99,90 @@ if submitted:
                 city = unidecode(city)
                 city = unidecode(country)
                 name = unidecode(name)
+                displayname = unidecode(displayname)
+                nickname = unidecode(nickname)
 
-                qr = helpers.make_vcard(
-                        name=name,
-                        displayname=displayname,
-                        nickname=nickname,
-                        phone=phone,
-                        email=[i for i in email.split(',')],
-                        url=[i for i in url.split(',')],
-                        city=city,
-                        country=country,
-                        org=org,
-                        title=title,
-                        birthday=birthday,
-                        )
-                
-                qr_img = qr.save(out='vcard.png', border=border, scale=scale)
-                with open('vcard.png', 'rb') as f:
-                        bytes_qr = f.read()
+                try:
+                        with open('qr_code.json', 'r') as f:
+                                qr_json = json.load(f)
+                                
+                        sheet_name = "VCard"
+                        gsheet_connector = connect_to_gsheet(qr_json)
+                        add_row_to_gsheet(gsheet_connector, sheet_name, 
+                                        [[name, displayname, nickname, phone, email, url, city, country, org, 
+                                        title, str(birthday), border, scale, str(datetime.date.today())]])
+                except Exception as e:
+                        print('Error:', e)
+                finally:
+                        qr = helpers.make_vcard(
+                                name=name,
+                                displayname=displayname,
+                                nickname=nickname,
+                                phone=phone,
+                                email=[i for i in email.split(',')],
+                                url=[i for i in url.split(',')],
+                                city=city,
+                                country=country,
+                                org=org,
+                                title=title,
+                                birthday=birthday,
+                                )
+                        
+                        qr_img = qr.save(out='vcard.png', border=border, scale=scale)
+                        with open('vcard.png', 'rb') as f:
+                                bytes_qr = f.read()
 
-                        st.write('Preview do QR Code')
-                        st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
+                                st.write('Preview do QR Code')
+                                st.image(bytes_qr, caption='Caso queira salvar, clique no botão abaixo')
+                                st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
         elif choice == card_wifi:
-                if security == 'WPA2 (Padrão)':
-                        security = 'WPA2'
-                wifi = helpers.make_wifi(ssid=ssid,
-                                        password=password,
-                                        security=security)
-                
-                wifi_img = wifi.save(out='wifi.png', border=border, scale=scale)
-                with open('wifi.png', 'rb') as f:
-                        bytes_wifi = f.read()
 
-                        st.write('Preview do QR Code')
-                        st.image(bytes_wifi, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
+                try:
+                        with open('qr_code.json', 'r') as f:
+                                qr_json = json.load(f)
+                                
+                        sheet_name = "Wifi"
+                        gsheet_connector = connect_to_gsheet(qr_json)
+                        add_row_to_gsheet(gsheet_connector, sheet_name, 
+                                        [[ssid, password, security, border, scale, str(datetime.date.today())]])
+                except Exception as e:
+                        print('Error:', e)
+                finally:
+                        if security == 'WPA2 (Padrão)':
+                                security = 'WPA2'
+                        wifi = helpers.make_wifi(ssid=ssid,
+                                                password=password,
+                                                security=security)
+                        
+                        wifi_img = wifi.save(out='wifi.png', border=border, scale=scale)
+                        with open('wifi.png', 'rb') as f:
+                                bytes_wifi = f.read()
+
+                                st.write('Preview do QR Code')
+                                st.image(bytes_wifi, caption='Caso queira salvar, clique no botão abaixo')
+                                st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
 
         elif choice == card_link:
-                run_query(f'SELECT * FROM "Links"')
-                link = segno.make(url)
 
-                link_img = link.save(out='link.png', border=border, scale=scale)
-                with open('link.png', 'rb') as f:
-                        bytes_link = f.read()
+                try:
+                        with open('qr_code.json', 'r') as f:
+                                qr_json = json.load(f)
+                                
+                        sheet_name = "Links"
+                        gsheet_connector = connect_to_gsheet(qr_json)
+                        add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today())]])
+                except Exception as e:
+                        print('Error:', e)
+                finally:
 
-                        st.write('Preview do QR Code')
-                        st.image(bytes_link, caption='Caso queira salvar, clique no botão abaixo')
-                        st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png")
+                        link = segno.make(url)
+
+                        link_img = link.save(out='link.png', border=border, scale=scale)
+                        with open('link.png', 'rb') as f:
+                                bytes_link = f.read()
+
+                                st.write('Preview do QR Code')
+                                st.image(bytes_link, caption='Caso queira salvar, clique no botão abaixo')
+                                st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png", on_click='Obrigado por usar o QR Code Generator!')
         else:
                 pass
