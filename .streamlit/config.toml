@@ -4,3 +4,7 @@ backgroundColor="#0D0C0F"
 secondaryBackgroundColor="#AD0023"
 textColor="#FFFFFF"
 font="sans serif"
+
+
+[server]
+port = 80
