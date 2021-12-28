@@ -6,5 +6,5 @@ textColor="#FFFFFF"
 font="sans serif"
 
 
-#[server]
-#port = 80
+[server]
+port = 8081
