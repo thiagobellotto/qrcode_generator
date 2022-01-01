@@ -58,31 +58,31 @@ choice = st.radio('Escolha o tipo de QR Code', (card_link, card_wifi, card_visit
 
 if choice == card_visita:
         with st.form('VCard'):
-                name = st.text_input('Nome', ' ')
+                name = st.text_input('Nome', '')
                 displayname = st.text_input('Nome para display', '')
-                nickname = st.text_input('Apelido', ' ')
+                nickname = st.text_input('Apelido', '')
                 phone = st.text_input('Telefone - Formato recomendado: +55 11 999999999', '')
-                email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', ' ')
-                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula)', ' ')
-                city = st.text_input('Cidade', ' ')
-                country = st.text_input('País', ' ')
-                org = st.text_input('Organização', ' ')
-                title = st.text_input('Título', ' ')
+                email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', '')
+                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula)', '')
+                city = st.text_input('Cidade', '')
+                country = st.text_input('País', '')
+                org = st.text_input('Organização', '')
+                title = st.text_input('Título', '')
                 birthday = st.date_input('Data de nascimento', None, min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=5, max_value=10)
                 submitted = st.form_submit_button('Gerar QR Code')
 elif choice == card_wifi:
         with st.form('WiFi'):
-                ssid = st.text_input('Nome do Wifi', ' ')
-                password = st.text_input('Senha', ' ')
+                ssid = st.text_input('Nome do Wifi', '')
+                password = st.text_input('Senha', '')
                 security = st.radio('Tipo de segurança', ('WPA2 (Padrão)', 'WPA', 'Nenhuma'))
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
 elif choice == card_link:
         with st.form('Link'):
-                url = st.text_input('Link', ' ')
+                url = st.text_input('Link', '')
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
