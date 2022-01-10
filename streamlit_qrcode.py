@@ -59,8 +59,6 @@ choice = st.radio('Escolha o tipo de QR Code', (card_link, card_wifi, card_visit
 if choice == card_visita:
         with st.form('VCard'):
                 name = st.text_input('Nome', '')
-                displayname = st.text_input('Nome para display', '')
-                nickname = st.text_input('Apelido', '')
                 phone = st.text_input('Telefone - Formato recomendado: +55 11 999999999', '')
                 email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', '')
                 url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula)', '')
@@ -99,25 +97,21 @@ if submitted:
                 city = unidecode(city)
                 city = unidecode(country)
                 name = unidecode(name)
-                displayname = unidecode(displayname)
-                nickname = unidecode(nickname)
 
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                         
                         sheet_name = "VCard"
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
-                                        [[name, displayname, nickname, phone, email, url, city, country, org, 
+                                        [[name, phone, email, url, city, country, org, 
                                         title, str(birthday), border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
                         qr = helpers.make_vcard(
                                 name=name,
-                                displayname=displayname,
-                                nickname=nickname,
                                 phone=phone,
                                 email=[i for i in email.split(',')],
                                 url=[i for i in url.split(',')],
@@ -137,7 +131,7 @@ if submitted:
                                 st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
         elif choice == card_wifi:
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Wifi"
@@ -164,7 +158,7 @@ if submitted:
         elif choice == card_link:
 
                 try:
-                        with open('.streamlit/qr_code.json', 'r') as f:
+                        with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
                                 
                         sheet_name = "Links"
