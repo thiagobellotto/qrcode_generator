@@ -27,4 +27,4 @@ COPY . /app
 ## Now, all we have to do is to tell Docker what command we want to run when our image is executed inside a container. 
 ## We do this using the CMD command. 
 ## Note that we need to make the application externally visible (i.e. from outside the container) by specifying --host=0.0.0.0.
-CMD ["streamlit", "run", "streamlit_qrcode.py", "--server.port=8080", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "streamlit_qrcode.py", "--server.port=8080"]
