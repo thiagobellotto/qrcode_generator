@@ -2,6 +2,8 @@
 
 FROM python:3.8-slim-buster
 
+EXPOSE 8080
+
 ## To make things easier when running the rest of our commands, let’s create a working directory. 
 ## This instructs Docker to use this path as the default location for all subsequent commands. 
 ## By doing this, we do not have to type out full file paths but can use relative paths based on the working directory.
@@ -25,4 +27,4 @@ COPY . /app
 ## Now, all we have to do is to tell Docker what command we want to run when our image is executed inside a container. 
 ## We do this using the CMD command. 
 ## Note that we need to make the application externally visible (i.e. from outside the container) by specifying --host=0.0.0.0.
-CMD ["streamlit", "run", "streamlit_qrcode.py"]
+CMD ["streamlit", "run", "streamlit_qrcode.py", "--server.port=8080", "--server.address=0.0.0.0"]
