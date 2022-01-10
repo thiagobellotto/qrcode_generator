@@ -52,6 +52,11 @@ text-align: center;
 """
 st.markdown(footer, unsafe_allow_html=True)
 
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
+
 card_visita, card_wifi, card_link = 'QR Code para cartão de visita', 'QR Code para WiFi', 'QR Code para links'
 
 choice = st.radio('Escolha o tipo de QR Code', (card_link, card_wifi, card_visita), index=0)
@@ -59,20 +64,18 @@ choice = st.radio('Escolha o tipo de QR Code', (card_link, card_wifi, card_visit
 if choice == card_visita:
         with st.form('VCard'):
                 name = st.text_input('Nome', '')
-                phone = st.text_input('Telefone - Formato recomendado: +55 11 999999999', '')
-                email = st.text_input('Email (Para adicionar mais de um, separe-os por vírgula)', '')
-                url = st.text_input('URL (Para adicionar mais de um, separe-os por vírgula)', '')
-                city = st.text_input('Cidade', '')
-                country = st.text_input('País', '')
-                org = st.text_input('Organização', '')
-                title = st.text_input('Título', '')
-                birthday = st.date_input('Data de nascimento', None, min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
+                phone = st.text_input('Telefone - Formato recomendado: +5511999999999', '')
+                email = st.text_input('Email - Para adicionar mais de um, separe-os por um ponto e vírgula ( ; )', '')
+                url = st.text_input('URL - Para adicionar mais de um, separe-os por um ponto e vírgula ( ; )', '')
+                org = st.text_input('Organização/Empresa', '')
+                title = st.text_input('Título/Cargo', '')
+                birthday = st.date_input('Data de nascimento (Em caso de omissão, mantenha a data padrão)', None, min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=5, max_value=10)
                 submitted = st.form_submit_button('Gerar QR Code')
 elif choice == card_wifi:
         with st.form('WiFi'):
-                ssid = st.text_input('Nome do Wifi', '')
+                ssid = st.text_input('Nome da internet/Wifi', '')
                 password = st.text_input('Senha', '')
                 security = st.radio('Tipo de segurança', ('WPA2 (Padrão)', 'WPA', 'Nenhuma'))
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
@@ -80,7 +83,7 @@ elif choice == card_wifi:
                 submitted = st.form_submit_button('Gerar QR Code')
 elif choice == card_link:
         with st.form('Link'):
-                url = st.text_input('Link', '')
+                url = st.text_input('Link / Texto', '')
                 border = st.slider(label='Selecione o tamanho da borda', min_value=1, max_value=5)
                 scale = st.slider(label='Selecione o tamanho do QR Code', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Gerar QR Code')
@@ -94,8 +97,6 @@ if submitted:
                         birthday = None
 
                 ## Deal with punctuation
-                city = unidecode(city)
-                city = unidecode(country)
                 name = unidecode(name)
 
                 try:
@@ -105,18 +106,17 @@ if submitted:
                         sheet_name = "VCard"
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, 
-                                        [[name, phone, email, url, city, country, org, 
+                                        [[name, phone, email, url, org, 
                                         title, str(birthday), border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
                         qr = helpers.make_vcard(
                                 name=name,
+                                displayname=name,
                                 phone=phone,
-                                email=[i for i in email.split(',')],
-                                url=[i for i in url.split(',')],
-                                city=city,
-                                country=country,
+                                email=[i for i in email.split(';')],
+                                url=[i for i in url.split(';')],
                                 org=org,
                                 title=title,
                                 birthday=birthday,
