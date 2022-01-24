@@ -22,7 +22,7 @@ from g_connect import connect_to_gsheet, add_row_to_gsheet
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('Gerador de QR Code')
 st.subheader('''
-        A ferramenta permite gerar QR Code para utilização em Links, Wifis e cartões de visita. Preencha as informações abaixo e clique em "Gerar" para gerar o QRCode.
+        A ferramenta permite gerar QR Code para utilização em Links, Wifis e cartões de visita. Preencha as informações abaixo e clique em "Gerar QRCode".
 ''')
 
 footer="""<style>
