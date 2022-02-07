@@ -2,7 +2,6 @@
 # coding: utf-8
 
 ## QR Code library
-from aiohttp import request
 from segno import helpers
 import segno
 
