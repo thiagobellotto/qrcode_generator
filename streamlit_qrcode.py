@@ -2,6 +2,7 @@
 # coding: utf-8
 
 ## QR Code library
+from aiohttp import request
 from segno import helpers
 import segno
 
@@ -9,6 +10,7 @@ import segno
 import datetime
 from unidecode import unidecode
 import json
+from send_http_request import send_http_request
 
 ## Streamlit
 import streamlit as st
@@ -17,17 +19,18 @@ import streamlit as st
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from g_connect import connect_to_gsheet, add_row_to_gsheet
+from upload_to_bucket import upload_to_bucket
 
 ## Main settings from page
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('QR Code Generator')
-# st.subheader('''
-#         A ferramenta permite gerar QR Code para utilização em Links, Wifis e cartões de visita. Preencha as informações abaixo e clique em "Gerar QRCode".
-# ''')
+st.subheader('''
+        The tool allows you to generate three kinds of QR Codes. Fill your infos below and click in "Generate QRCode".
+''')
 
 footer="""<style>
 a:link , a:visited{
-color: blue;
+color: white;
 background-color: transparent;
 text-decoration: underline;
 }
@@ -52,19 +55,19 @@ text-align: center;
 """
 st.markdown(footer, unsafe_allow_html=True)
 
-st.markdown(""" <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-</style> """, unsafe_allow_html=True)
+# st.markdown(""" <style>
+# #MainMenu {visibility: hidden;}
+# footer {visibility: hidden;}
+# </style> """, unsafe_allow_html=True)
 
 card_visita, card_wifi, card_link = 'Business Card', 'WiFi', 'Links/URLs'
 
-choice = st.radio('Select the type of QR Code:', (card_link, card_wifi, card_visita), index=0)
+choice = st.radio(label='Select QR Code type:', options=(card_link, card_wifi, card_visita), index=0, key='qr_code_type')
 
 if choice == card_visita:
         with st.form('VCard'):
                 name = st.text_input('Name', '')
-                phone = st.text_input('Telephone - Recommended: +5511999999999', '')
+                phone = st.text_input('Telephone - Recommended format: +5511999999999', '')
                 email = st.text_input('Email - For more than one, use ";" ', '')
                 url = st.text_input('URL - For more than one, use ";" ', '')
                 org = st.text_input('Company', '')
@@ -87,8 +90,6 @@ elif choice == card_link:
                 border = st.slider(label='Border Size', min_value=1, max_value=5)
                 scale = st.slider(label='QR Code Size', min_value=10, max_value=15)
                 submitted = st.form_submit_button('Generate QR Code')
-else:
-        pass
 
 if submitted:
         if choice == card_visita:
@@ -128,7 +129,8 @@ if submitted:
 
                                 st.write('Preview QR Code')
                                 st.image(bytes_qr)
-                                st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png")
+                                st.download_button(label="Download QR Code", data=bytes_qr, file_name="vcard.png", mime="image/png", 
+                                        on_click=upload_to_bucket, args=('qr_code.json', 'QR Code Streamlit', 'business-card-qr-code', f'{name}.png', "vcard.png"))
         elif choice == card_wifi:
                 try:
                         with open('qr_code.json', 'r') as f:
@@ -153,29 +155,31 @@ if submitted:
 
                                 st.write('Preview QR Code')
                                 st.image(bytes_wifi)
-                                st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png")
+                                st.download_button(label="Download QR Code", data=bytes_wifi, file_name="wifi.png", mime="image/png", 
+                                        on_click=upload_to_bucket, args=('qr_code.json', 'QR Code Streamlit', 'wifi-qr-code', f'{ssid}.png', "wifi.png"))
 
         elif choice == card_link:
 
                 try:
                         with open('qr_code.json', 'r') as f:
                                 qr_json = json.load(f)
-                                
+                        
                         sheet_name = "Links"
                         gsheet_connector = connect_to_gsheet(qr_json)
                         add_row_to_gsheet(gsheet_connector, sheet_name, [[url, border, scale, str(datetime.date.today())]])
                 except Exception as e:
                         print('Error:', e)
                 finally:
-
                         link = segno.make(url)
-
                         link_img = link.save(out='link.png', border=border, scale=scale)
+                        
                         with open('link.png', 'rb') as f:
                                 bytes_link = f.read()
 
-                                st.write('Preview QR Code')
-                                st.image(bytes_link)
-                                st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png")
-        else:
-                pass
+                        st.write('Preview QR Code')
+                        st.image(bytes_link)
+
+                        new_url = url.replace('https://', '').replace('/', '-')
+
+                        st.download_button(label="Download QR Code", data=bytes_link, file_name="link.png", mime="image/png", 
+                                on_click=upload_to_bucket, args=('qr_code.json', 'QR Code Streamlit', 'links-qr-code', f'{new_url}.png', "link.png"))
