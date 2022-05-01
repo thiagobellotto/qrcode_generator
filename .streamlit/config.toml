@@ -1,10 +1,9 @@
 [theme]
-primaryColor="#AD0023"
+primaryColor="#00C896"
 backgroundColor="#0D0C0F"
-secondaryBackgroundColor="#AD0023"
+secondaryBackgroundColor="#0D0C0F"
 textColor="#FFFFFF"
 font="sans serif"
-
 
 [server]
 port = 8501
