@@ -9,14 +9,13 @@ import segno
 import datetime
 from unidecode import unidecode
 import json
-from send_http_request import send_http_request
 
 ## Streamlit
 import streamlit as st
 
 ## Import google cloud authentication and functions
+from google.cloud import storage
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from g_connect import connect_to_gsheet, add_row_to_gsheet
 from upload_to_bucket import upload_to_bucket
 
@@ -51,18 +50,42 @@ text-align: center;
 <div class="footer">
 <p>Developed with ❤ by <a style='display: block; color: white; text-align: center;' href="https://www.linkedin.com/in/thiago-bellotto/" target="_blank">Thiago Bellotto</a></p>
 </div>
-"""
+"""     
 st.markdown(footer, unsafe_allow_html=True)
 
-# st.markdown(""" <style>
-# #MainMenu {visibility: hidden;}
-# footer {visibility: hidden;}
-# </style> """, unsafe_allow_html=True)
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
 
 card_visita, card_wifi, card_link = 'Business Card', 'WiFi', 'Links/URLs'
 
-choice = st.radio(label='Select QR Code type:', options=(card_link, card_wifi, card_visita), index=0, key='qr_code_type')
+with st.sidebar:
+        st.markdown("""
+        <style>
+        .sidebar-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        st.sidebar.subheader('Select the type of QR Code you want to generate')
+        choice = st.radio(label='Select QR Code type:', options=(card_link, card_wifi, card_visita), index=0, key='qr_code_type')
 
+        ## Give the credits
+        st.sidebar.subheader('About the app')
+        st.sidebar.info("""
+        This app was developed by Thiago Bellotto, as a side project.
+        It was created to help people to generate QR Codes for their business cards, WiFi passwords, or links.
+        
+        The app was created with Streamlit, a Python web app framework.
+        It is hosted on Google Cloud Platform.
+        """)
+        st.write(""" 
+        You can find me on my <a href="https://thiagobellotto.com">Website</a>, <a href="https://www.linkedin.com/in/thiago-bellotto/">LinkedIn</a> 
+        or 
+        <a href="https://github.com/thiagobellotto">GitHub</a>""", unsafe_allow_html=True)
+        
 if choice == card_visita:
         with st.form('VCard'):
                 name = st.text_input('Name', '')

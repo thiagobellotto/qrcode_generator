@@ -1,8 +1,9 @@
 
 import json
+import requests
+import streamlit as st
 from google.cloud import storage
 from google.oauth2 import service_account
-from send_http_request import send_http_request
 
 def upload_to_bucket(credentials, project_name: str, bucket_name: str, file_name: str, file_path: str):
     '''Upload a file to a bucket'''
@@ -14,6 +15,9 @@ def upload_to_bucket(credentials, project_name: str, bucket_name: str, file_name
         raise error
 
     credentials = service_account.Credentials.from_service_account_file(credentials)
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
 
     storage_client = storage.Client(credentials=credentials, project=project_name)
     bucket = storage_client.get_bucket(bucket_name)
@@ -21,6 +25,10 @@ def upload_to_bucket(credentials, project_name: str, bucket_name: str, file_name
     
     with open(file_path, 'rb') as f:
         blob.upload_from_file(f)
+        try:
+            token = st.secrets["telegram_token"]
+            requests.get(token)
+        except Exception as error:
+            print(f'Error: {error}')
 
-    send_http_request()
     print(f'The file {file_name} was uploaded to {bucket_name}.')

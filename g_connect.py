@@ -3,11 +3,12 @@
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import streamlit as st
 
 ## Define global variables for connection 
-SCOPE = "https://www.googleapis.com/auth/spreadsheets"
-SPREADSHEET_ID = "1o3_pxe9VcjFJGCtRoqLw6Npfhwj1ZNzCe-W_ru3SNVM"
-GSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
+SCOPE = st.secrets['google_sheets']['scope']
+SPREADSHEET_ID = st.secrets['google_sheets']['spreadsheet_id']
+GSHEET_URL = st.secrets['google_sheets']['gsheet_url']
 
 def connect_to_gsheet(data):
     # Create a connection object.
