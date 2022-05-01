@@ -8,14 +8,14 @@ import os
 
 def upload_to_bucket(credentials, project_name: str, bucket_name: str, file_name: str, file_path: str):
     '''Upload a file to a bucket'''
-    try:
-        with open(credentials) as f:
-            f = json.load(f)
-    except Exception as error:
-        print(f'Error: The file {credentials} needs to be in JSON format.')
-        raise error
+    # try:
+    #     with open(credentials) as f:
+    #         f = json.load(f)
+    # except Exception as error:
+    #     print(f'Error: The file {credentials} needs to be in JSON format.')
+    #     raise error
 
-    credentials = service_account.Credentials.from_service_account_file(credentials)
+    # credentials = service_account.Credentials.from_service_account_file(credentials)
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"]
         # os.environ['GCP_SERVICE_ACCOUNT']

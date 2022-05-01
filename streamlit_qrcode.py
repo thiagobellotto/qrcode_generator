@@ -18,6 +18,7 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from g_connect import connect_to_gsheet, add_row_to_gsheet
 from upload_to_bucket import upload_to_bucket
+import os
 
 ## Main settings from page
 st.set_page_config(layout="centered", page_title='QR Code')
@@ -79,8 +80,8 @@ with st.sidebar:
         It was created to help people to generate QR Codes for their business cards, WiFi passwords, or links.
         
         The app was created with Streamlit, a Python web app framework.
-        It is hosted on Google Cloud Platform.
         """)
+        
         st.write(""" 
         You can find me on my <a href="https://thiagobellotto.com">Website</a>, <a href="https://www.linkedin.com/in/thiago-bellotto/">LinkedIn</a> 
         or 
