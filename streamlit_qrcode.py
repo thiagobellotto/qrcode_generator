@@ -24,7 +24,7 @@ import os
 st.set_page_config(layout="centered", page_title='QR Code')
 st.title('QR Code Generator')
 st.subheader('''
-        The tool allows you to generate three kinds of QR Codes. Fill your infos below and click in "Generate QRCode".
+        The tool allows you to generate a QR Code. Select the desired type on the side, fill your infos below and click in "Generate QRCode".
 ''')
 
 footer="""<style>
