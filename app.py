@@ -1,23 +1,18 @@
-## QR Code library
+# QR Code Generator using Streamlit
+
+## Imports
+import datetime
+import json
 from segno import helpers
 import segno
-
-## Create datetime and handle punctuation
-import datetime
 from unidecode import unidecode
-import json
-
-## Streamlit
 import streamlit as st
 
 ## Main settings from page
 st.set_page_config(layout="centered", page_title="QR Code")
 st.title("QR Code Generator")
-st.subheader(
-    """
-        The tool allows you to generate a QR Code. Select the desired type on the side, fill your infos below and click in "Generate QRCode".
-        """
-)
+st.subheader("Choose the type, fill in your details, and click 'Generate QRCode'.")
+
 
 footer = """<style>
 a:link , a:visited{
@@ -47,55 +42,24 @@ text-align: center;
 st.markdown(footer, unsafe_allow_html=True)
 
 st.markdown(
-    """ <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-</style> """,
+    "<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>",
     unsafe_allow_html=True,
 )
 
-card_visita, card_wifi, card_link = "Business Card", "WiFi", "Links/URLs"
+## Sidebar for QR Code Type Selection
+qr_types = {"Links/URLs": "Link", "WiFi": "WiFi", "Business Card": "VCard"}
+choice = st.sidebar.radio("Select QR Code type:", list(qr_types.keys()))
 
-with st.sidebar:
-    st.markdown(
-        """
-        <style>
-        .sidebar-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.sidebar.subheader("Select the type of QR Code you want to generate")
-    choice = st.radio(
-        label="Select QR Code type:",
-        options=(card_link, card_wifi, card_visita),
-        index=0,
-        key="qr_code_type",
-    )
+st.sidebar.subheader("About the app")
+st.sidebar.info(
+    "Developed by Thiago Bellotto to generate QR Codes for business cards, WiFi passwords, or links. Built with Streamlit."
+)
+st.sidebar.markdown(
+    """Find me on [Website](https://thiagobellotto.com), [LinkedIn](https://www.linkedin.com/in/thiago-bellotto/), or [GitHub](https://github.com/thiagobellotto).""",
+    unsafe_allow_html=True,
+)
 
-    ## Give the credits
-    st.sidebar.subheader("About the app")
-    st.sidebar.info(
-        """
-        This app was developed by Thiago Bellotto, as a side project.
-        It was created to help people to generate QR Codes for their business cards, WiFi passwords, or links.
-        
-        The app was created with Streamlit, a Python web app framework.
-        """
-    )
-
-    st.write(
-        """ 
-        You can find me on my <a href="https://thiagobellotto.com">Website</a>, <a href="https://www.linkedin.com/in/thiago-bellotto/">LinkedIn</a> 
-        or 
-        <a href="https://github.com/thiagobellotto">GitHub</a>""",
-        unsafe_allow_html=True,
-    )
-
-if choice == card_visita:
+if choice == "Business Card":
     with st.form("VCard"):
         name = st.text_input("Name", "")
         phone = st.text_input("Telephone - Recommended format: +5511999999999", "")
@@ -112,7 +76,20 @@ if choice == card_visita:
         border = st.slider(label="Border Size", min_value=1, max_value=5)
         scale = st.slider(label="QR Code Size", min_value=5, max_value=10)
         submitted = st.form_submit_button("Generate QR Code")
-elif choice == card_wifi:
+        if submitted:
+            qr = helpers.make_vcard(
+                name=name,
+                displayname=name,
+                phone=phone,
+                email=[i.strip() for i in email.split(";")],
+                url=[i.strip() for i in url.split(";")],
+                org=org,
+                title=title,
+                birthday=None if birthday == datetime.date.today() else birthday,
+            )
+            qr.save("vcard.png", border=border, scale=scale)
+
+elif choice == "WiFi":
     with st.form("WiFi"):
         ssid = st.text_input("Wifi Name", "")
         password = st.text_input("Password", "")
@@ -120,103 +97,52 @@ elif choice == card_wifi:
         border = st.slider(label="Border Size", min_value=1, max_value=5)
         scale = st.slider(label="QR Code Size", min_value=10, max_value=15)
         submitted = st.form_submit_button("Generate QR Code")
-elif choice == card_link:
+        if submitted:
+            wifi = helpers.make_wifi(
+                ssid=ssid,
+                password=password,
+                security=security.replace(" (Standard)", ""),
+            )
+            wifi.save("wifi.png", border=border, scale=scale)
+
+elif choice == "Links/URLs":
     with st.form("Link"):
         url = st.text_input("Links/URLs", "")
         border = st.slider(label="Border Size", min_value=1, max_value=5)
         scale = st.slider(label="QR Code Size", min_value=10, max_value=15)
         submitted = st.form_submit_button("Generate QR Code")
-
-if submitted:
-    if choice == card_visita:
-        ## Deal with birthday date, if empty
-        if birthday == datetime.date.today():
-            birthday = None
-
-        ## Deal with punctuation
-        name = unidecode(name)
-
-        try:
-            with open("qr_code.json", "r") as f:
-                qr_json = json.load(f)
-
-            sheet_name = "VCard"
-        except Exception as e:
-            print("Error:", e)
-        finally:
-            qr = helpers.make_vcard(
-                name=name,
-                displayname=name,
-                phone=phone,
-                email=[i for i in email.split(";")],
-                url=[i for i in url.split(";")],
-                org=org,
-                title=title,
-                birthday=birthday,
-            )
-
-            qr_img = qr.save(out="vcard.png", border=border, scale=scale)
-            with open("vcard.png", "rb") as f:
-                bytes_qr = f.read()
-
-                st.write("Preview QR Code")
-                st.image(bytes_qr)
-                st.download_button(
-                    label="Download QR Code",
-                    data=bytes_qr,
-                    file_name="vcard.png",
-                    mime="image/png",
-                )
-    elif choice == card_wifi:
-        try:
-            with open("qr_code.json", "r") as f:
-                qr_json = json.load(f)
-
-            sheet_name = "Wifi"
-
-        except Exception as e:
-            print("Error:", e)
-        finally:
-            if security == "WPA2 (Standard)":
-                security = "WPA2"
-            wifi = helpers.make_wifi(ssid=ssid, password=password, security=security)
-
-            wifi_img = wifi.save(out="wifi.png", border=border, scale=scale)
-            with open("wifi.png", "rb") as f:
-                bytes_wifi = f.read()
-
-                st.write("Preview QR Code")
-                st.image(bytes_wifi)
-                st.download_button(
-                    label="Download QR Code",
-                    data=bytes_wifi,
-                    file_name="wifi.png",
-                    mime="image/png",
-                )
-
-    elif choice == card_link:
-
-        try:
-            with open("qr_code.json", "r") as f:
-                qr_json = json.load(f)
-
-            sheet_name = "Links"
-        except Exception as e:
-            print("Error:", e)
-        finally:
+        if submitted:
             link = segno.make(url)
-            link_img = link.save(out="link.png", border=border, scale=scale)
+            link.save("link.png", border=border, scale=scale)
 
-            with open("link.png", "rb") as f:
-                bytes_link = f.read()
-
-            st.write("Preview QR Code")
-            st.image(bytes_link)
-
-            new_url = url.replace("https://", "").replace("/", "-")
-
+## Display and Download QR Code after form submission
+if submitted:
+    if choice == "Business Card":
+        with open("vcard.png", "rb") as f:
+            bytes_qr = f.read()
+            st.image(bytes_qr, caption="Preview QR Code")
             st.download_button(
-                label="Download QR Code",
+                "Download QR Code",
+                data=bytes_qr,
+                file_name="vcard.png",
+                mime="image/png",
+            )
+    elif choice == "WiFi":
+        with open("wifi.png", "rb") as f:
+            bytes_wifi = f.read()
+            st.image(bytes_wifi, caption="Preview QR Code")
+            st.download_button(
+                "Download QR Code",
+                data=bytes_wifi,
+                file_name="wifi.png",
+                mime="image/png",
+            )
+    elif choice == "Links/URLs":
+        with open("link.png", "rb") as f:
+            bytes_link = f.read()
+            st.image(bytes_link, caption="Preview QR Code")
+            st.download_button(
+                "Download QR Code",
                 data=bytes_link,
                 file_name="link.png",
                 mime="image/png",
