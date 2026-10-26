@@ -1,42 +1,26 @@
-# QR Code Generator with Streamlit
+# QR Code Generator
 
-This project is a QR code generator built with Streamlit, designed to create VCards embedded in QR codes. It allows users to input their contact information and generate a personalized QR code for easy sharing.
+A Streamlit app for website links, Wi-Fi networks, and vCard contact cards, with
+PNG downloads and scalable SVG exports. QR codes are generated in memory using
+Segno; no external QR service is called.
 
-## Features
+## Run locally with uv
 
-- Generate QR codes with VCard format.
-- Simple, user-friendly interface built with Streamlit.
-- Downloadable QR codes for easy use and sharing.
+Use Python 3.12 to match the recommended Community Cloud deployment:
 
-## Getting Started
+```bash
+uv sync --locked --python 3.12
+uv run streamlit run app.py
+```
 
-1. Clone the repository.
-2. Install dependencies using `pip install -r requirements.txt`.
-3. Run the app with `streamlit run app.py`.
+Dependencies live in `pyproject.toml`, with exact resolved versions in `uv.lock`.
+After intentionally changing dependencies, run `uv lock` and commit both files.
+The old inline script metadata has been removed to avoid two sources of truth.
 
-## Requirements
+## Privacy
 
-- Python 3.10
-- Streamlit
-
-## Usage
-
-1. Enter your contact details in the provided fields.
-2. Click “Generate QR Code” to create your VCard QR code.
-3. Download and share your QR code.
-
-## Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-## License
-
-This project is open-source under the MIT License.
-
-## Contact
-
-For questions, please reach out at thiagobellotto@gmail.com.
-
----
-
-Check out the project on GitHub: [QR Code Generator](https://github.com/thiagobellotto/qrcode_generator).
+Streamlit processes submitted details on the server. This app does not write them
+to disk, log them, globally cache them, or send them to an external QR service.
+Generated files are retained in the current Streamlit session and served for
+download. QR codes are **not encryption**: anyone with a Wi-Fi/contact QR can
+recover its contents. Hosting-platform retention policies are separate.
