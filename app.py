@@ -6,33 +6,7 @@ import segno
 import streamlit as st
 from segno import helpers
 
-## Main settings from page
-st.set_page_config(layout="centered", page_title="QR Code", page_icon="🔳")
-st.title("QR Code Generator")
-st.caption("Choose a type, fill in your details, and generate a QR code.")
-
-## Sidebar for QR Code Type Selection
-QR_TYPES = ("Links/URLs", "WiFi", "Business Card")
-choice = st.sidebar.radio("Select QR Code type:", QR_TYPES)
-
-st.sidebar.subheader("About the app")
-st.sidebar.markdown(
-    "Developed by Thiago Bellotto to generate QR Codes for business cards, "
-    "WiFi passwords, or links. Built with Streamlit."
-)
-st.sidebar.markdown(
-    "Find me on [Website](https://thiagobellotto.com), "
-    "[LinkedIn](https://www.linkedin.com/in/thiago-bellotto/), "
-    "or [GitHub](https://github.com/thiagobellotto)."
-)
-
-
-def split_values(raw: str) -> list[str] | None:
-    """Split a ';'-separated field, dropping blanks. Returns None if empty."""
-    values = [v.strip() for v in raw.split(";") if v.strip()]
-    return values or None
-
-
+st.set_page_config(page_title="QR Code Generator", page_icon=":material/qr_code_2:", layout="wide")
 def vcard_name(given_name: str, family_name: str) -> str:
     """Escape components separately; Segno intentionally leaves N unescaped."""
     def escape(value):
@@ -92,124 +66,174 @@ def valid_url(value: str) -> bool:
         return False
 
 
-# Results are private to this session; never globally cache contact/Wi-Fi data.
-if st.session_state.get("result_type") != choice:
+
+
+def change_count(key: str, delta: int):
+    st.session_state[key] = max(1, min(5, st.session_state.get(key, 1) + delta))
+
+
+def multiple_inputs(label: str, prefix: str, placeholder: str) -> list[str]:
+    """Explicit controls for multiple values, without delimiter conventions."""
+    count_key = prefix + "_count"
+    count = st.session_state.setdefault(count_key, 1)
+    values = [st.text_input(label if i == 0 else f"{label} {i + 1}",
+                            key=f"{prefix}_{i}", placeholder=placeholder).strip()
+              for i in range(count)]
+    with st.container(horizontal=True, gap="small"):
+        st.button(f"Add another {label.lower()}", key=prefix + "_add",
+                  on_click=change_count, args=(count_key, 1), disabled=count >= 5,
+                  type="tertiary", icon=":material/add:")
+        if count > 1:
+            st.button(f"Remove last {label.lower()}", key=prefix + "_remove",
+                      on_click=change_count, args=(count_key, -1), type="tertiary")
+    return [value for value in values if value]
+
+
+def clear_result():
     st.session_state.pop("result", None)
-    st.session_state.result_type = choice
 
-qr = None
-file_name = "qrcode.png"
 
-if choice == "Business Card":
-    with st.form("VCard"):
-        name = st.text_input("Full name / display name *")
-        given_name = st.text_input("Given name(s) (optional)")
-        family_name = st.text_input("Family name (optional)")
-        phone = st.text_input("Telephone - Recommended format: +5511999999999")
-        email = st.text_input('Email - For more than one, use ";"')
-        url = st.text_input('URL - For more than one, use ";"')
-        org = st.text_input("Company")
-        title = st.text_input("Title")
-        birthday = st.date_input(
-            "Birth Date (optional)",
-            value=None,
-            min_value=datetime.date(1900, 1, 1),
-            max_value=datetime.date.today(),
-        )
-        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
-        scale = st.slider("QR Code Size", min_value=5, max_value=10, value=6)
-        submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
+with st.container(horizontal=True, horizontal_alignment="center"):
+    workspace = st.container(width=1100)
 
-    if submitted:
-        st.session_state.pop("result", None)
-        if not name.strip():
-            st.error("Please provide a name.")
-        else:
-            qr = generate(helpers.make_vcard,
-                name=vcard_name(given_name.strip() or name, family_name),
-                displayname=name.strip(),
-                phone=phone.strip() or None,
-                email=split_values(email),
-                url=split_values(url),
-                org=org.strip() or None,
-                title=title.strip() or None,
-                birthday=birthday,
-            )
-            file_name = "vcard.png"
+with workspace:
+    st.title("QR Code Generator")
+    st.caption("Create a code for a website, a Wi-Fi network, or a contact. Ready to share in seconds.")
+    choice = st.segmented_control(
+        "What would you like to share?", ["Website link", "Wi-Fi network", "Contact card"],
+        default="Website link", required=True, key="qr_type", width="stretch",
+    )
+    if st.session_state.get("result_type") != choice:
+        clear_result()
+        st.session_state.result_type = choice
 
-elif choice == "WiFi":
-    with st.form("WiFi"):
-        ssid = st.text_input("WiFi Name *")
-        password = st.text_input("Password", type="password")
-        security = st.radio("Security", ("WPA/WPA2", "WEP", "None"))
-        hidden = st.checkbox("Hidden network")
-        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
-        scale = st.slider("QR Code Size", min_value=10, max_value=15, value=10)
-        submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
-
-    if submitted:
-        st.session_state.pop("result", None)
-        is_open = security == "None"
-        if not ssid:
-            st.error("Please provide the WiFi name.")
-        elif not is_open and not password:
-            st.error("Please provide the password, or choose 'None' as security.")
-        else:
-            qr = generate(helpers.make_wifi,
-                ssid=ssid,
-                password=None if is_open else password,
-                security=None if is_open else ("WPA" if security == "WPA/WPA2" else "WEP"),
-                hidden=hidden,
-            )
-            file_name = "wifi.png"
-
-elif choice == "Links/URLs":
-    with st.form("Link"):
-        url = st.text_input("Link/URL *", placeholder="google.com", help="If you omit http:// or https://, we use https://.")
-        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
-        scale = st.slider("QR Code Size", min_value=10, max_value=15, value=10)
-        submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
-
-    if submitted:
-        st.session_state.pop("result", None)
-        if not url.strip():
-            st.error("Please provide a link.")
-        else:
-            normalized_url = normalize_url(url)
-            if not valid_url(normalized_url):
-                st.error("Enter a valid website address without spaces (for example, google.com).")
+    details, preview = st.columns([1.25, 1], gap="medium", wrap=True)
+    with details:
+        with st.container(border=True, key="details"):
+            st.subheader("Your details")
+            st.caption("Required fields are marked *. Press Enter or leave a field to apply edits.")
+            data = {}
+            if choice == "Website link":
+                data["url"] = st.text_input("Website address *", key="link_url",
+                    placeholder="google.com", help="No prefix needed — we add https:// automatically.").strip()
+            elif choice == "Wi-Fi network":
+                data["ssid"] = st.text_input("Network name *", key="wifi_ssid", placeholder="Your Wi-Fi name")
+                data["security"] = st.selectbox("Security", ["WPA/WPA2", "WEP", "None (open network)"], key="wifi_security")
+                is_open = data["security"] == "None (open network)"
+                password = st.text_input("Password" if is_open else "Password *", type="password", key="wifi_password",
+                                         disabled=is_open, help="Not required for open networks." if is_open else None)
+                data["password"] = "" if is_open else password
+                data["hidden"] = st.checkbox("Hidden network", key="wifi_hidden")
+                st.caption("For personal Wi-Fi networks. Enterprise sign-in is not supported.")
             else:
-                qr = generate(segno.make_qr, content=normalized_url, error="m")
-                file_name = "link.png"
+                data["name"] = st.text_input("Display name *", key="contact_name", placeholder="Alex Morgan").strip()
+                data["phone"] = st.text_input("Phone", key="contact_phone", placeholder="+1 555 123 4567").strip()
+                data["emails"] = multiple_inputs("Email", "contact_email", "alex@example.com")
+                with st.expander("Work & website"):
+                    data["org"] = st.text_input("Company", key="contact_org").strip()
+                    data["title"] = st.text_input("Job title", key="contact_title").strip()
+                    data["urls"] = multiple_inputs("Website", "contact_url", "example.com")
+                with st.expander("Additional contact details"):
+                    st.caption("Optional names control how the contact is sorted in an address book. "
+                               "Otherwise, we use the display name without guessing a surname.")
+                    data["given"] = st.text_input("Given name(s)", key="contact_given").strip()
+                    data["family"] = st.text_input("Family name", key="contact_family").strip()
+                    data["birthday"] = st.date_input("Birthday", value=None, key="contact_birthday",
+                        min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
 
-# Keep the last submitted result through reruns and download without a rerun.
-if qr is not None:
-    svg_buffer = io.BytesIO()
-    qr.save(svg_buffer, kind="svg", border=border, scale=scale, light="white")
-    st.session_state.result = {
-        "png": to_png(qr, border=border, scale=scale),
-        "svg": svg_buffer.getvalue(),
-        "file_name": file_name,
-    }
+            with st.expander("Appearance & size"):
+                border = st.slider("White margin", 1, 8, 4, key="qr_border",
+                    help="Margin in modules. Four or more is recommended for reliable scanning.")
+                size = st.select_slider("PNG size", [512, 1024, 2048], value=1024, key="qr_size",
+                    format_func=lambda value: f"Up to {value} × {value} px")
+                st.caption("PNG uses whole QR modules for sharp edges; exact dimensions appear in the preview. "
+                           "SVG can be resized without losing quality.")
+            snapshot = {"type": choice, "data": data, "border": border, "size": size}
+            submitted = st.button("Generate QR code", type="primary", width="stretch", icon=":material/qr_code_2:")
+            if submitted:
+                clear_result()
+                qr = None
+                summary = []
+                filename = "qrcode"
+                if choice == "Website link":
+                    url = normalize_url(data["url"])
+                    if not data["url"]:
+                        st.error("Enter a website address to generate your code.")
+                    elif not valid_url(url):
+                        st.error("Check the website address. Use a domain such as google.com, without spaces.")
+                    else:
+                        qr = generate(segno.make_qr, content=url, error="m")
+                        summary = [url]
+                        filename = "link"
+                elif choice == "Wi-Fi network":
+                    if not data["ssid"]:
+                        st.error("Enter the network name.")
+                    elif not is_open and not data["password"]:
+                        st.error("Enter the password, or choose an open network.")
+                    else:
+                        qr = generate(helpers.make_wifi, ssid=data["ssid"],
+                            password=None if is_open else data["password"],
+                            security=None if is_open else ("WPA" if data["security"] == "WPA/WPA2" else "WEP"),
+                            hidden=data["hidden"])
+                        summary = [data["ssid"], data["security"] + (" · Hidden network" if data["hidden"] else "")]
+                        filename = "wifi"
+                else:
+                    urls = [normalize_url(value) for value in data["urls"]]
+                    if not data["name"]:
+                        st.error("Enter a display name for the contact.")
+                    elif any(not valid_url(value) for value in urls):
+                        st.error("Check the website addresses under Work & website. Use domains without spaces.")
+                    else:
+                        qr = generate(helpers.make_vcard,
+                            name=vcard_name(data["given"] or data["name"], data["family"]),
+                            displayname=data["name"], phone=data["phone"] or None,
+                            email=data["emails"] or None, url=urls or None,
+                            org=data["org"] or None, title=data["title"] or None, birthday=data["birthday"])
+                        summary = [data["name"], data["phone"], *data["emails"], data["org"], *urls]
+                        filename = "contact"
+                if qr is not None:
+                    modules = qr.symbol_size(scale=1, border=border)[0]
+                    scale = max(1, size // modules)
+                    svg_buffer = io.BytesIO()
+                    qr.save(svg_buffer, kind="svg", border=border, scale=1, light="white")
+                    st.session_state.result = {
+                        "png": to_png(qr, border=border, scale=scale), "svg": svg_buffer.getvalue(),
+                        "snapshot": snapshot, "summary": [line for line in summary if line],
+                        "filename": filename, "pixels": modules * scale,
+                    }
 
-result = st.session_state.get("result")
-if result:
-    st.image(result["png"], caption="Last generated QR code — submit again after editing.")
-    png_column, svg_column = st.columns(2)
-    with png_column:
-        st.download_button("Download PNG", data=result["png"],
-                           file_name=result["file_name"], mime="image/png",
-                           on_click="ignore", width="stretch")
-    with svg_column:
-        st.download_button("Download SVG", data=result["svg"],
-                           file_name=result["file_name"].replace(".png", ".svg"),
-                           mime="image/svg+xml", on_click="ignore", width="stretch")
-    st.caption("Scan-test before sharing or printing. SVG stays sharp at any size.")
-    if choice == "WiFi":
-        st.warning("Anyone with this QR code can read the Wi-Fi password.")
-    if st.button("Clear generated code"):
-        st.session_state.pop("result", None)
-        st.rerun()
+    with preview:
+        with st.container(border=True, key="preview"):
+            st.subheader("Your QR code")
+            result = st.session_state.get("result")
+            if result is None:
+                st.markdown("**Your QR code will appear here.**")
+                st.caption("Enter your details, then choose Generate QR code. Download as PNG for sharing or SVG for printing.")
+            else:
+                stale = result["snapshot"] != snapshot
+                if stale:
+                    st.warning("Details changed — generate again to update your QR code.")
+                    st.caption("The preview below shows your previous code. Downloads are paused until you regenerate.")
+                else:
+                    st.success("Ready to download")
+                st.image(result["png"], width=320, alt="Generated QR code; its content summary is shown below.")
+                st.caption("Encoded details" if not stale else "Previously encoded details")
+                for line in result["summary"]:
+                    st.text(line)
+                st.caption(f"PNG: {result['pixels']} × {result['pixels']} px · SVG: scalable")
+                st.download_button("Download PNG", data=result["png"],
+                    file_name=result["filename"] + ".png", mime="image/png", type="primary",
+                    on_click="ignore", disabled=stale, width="stretch")
+                st.caption("Best for sharing, documents, and everyday use.")
+                st.download_button("Download SVG", data=result["svg"],
+                    file_name=result["filename"] + ".svg", mime="image/svg+xml",
+                    on_click="ignore", disabled=stale, width="stretch")
+                st.caption("Best for printing and resizing. Scan-test before sharing.")
+                if choice == "Wi-Fi network":
+                    st.caption("Anyone with this QR code can read its Wi-Fi credentials.")
+                st.button("Clear generated code", on_click=clear_result, type="tertiary")
 
-st.divider()
-st.caption("Developed with ❤ by [Thiago Bellotto](https://www.linkedin.com/in/thiago-bellotto/)")
+    st.divider()
+    st.caption("Made by [Thiago Bellotto](https://thiagobellotto.com) · "
+               "[LinkedIn](https://www.linkedin.com/in/thiago-bellotto/) · "
+               "[GitHub](https://github.com/thiagobellotto)")
