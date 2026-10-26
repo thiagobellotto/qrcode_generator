@@ -16,7 +16,7 @@ QR_TYPES = ("Links/URLs", "WiFi", "Business Card")
 choice = st.sidebar.radio("Select QR Code type:", QR_TYPES)
 
 st.sidebar.subheader("About the app")
-st.sidebar.info(
+st.sidebar.markdown(
     "Developed by Thiago Bellotto to generate QR Codes for business cards, "
     "WiFi passwords, or links. Built with Streamlit."
 )
@@ -116,7 +116,7 @@ if choice == "Business Card":
             min_value=datetime.date(1900, 1, 1),
             max_value=datetime.date.today(),
         )
-        border = st.slider("Border Size", min_value=4, max_value=8, value=4, help="White margin in modules; at least four keeps standard QR codes scannable.")
+        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
         scale = st.slider("QR Code Size", min_value=5, max_value=10, value=6)
         submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
 
@@ -143,7 +143,7 @@ elif choice == "WiFi":
         password = st.text_input("Password", type="password")
         security = st.radio("Security", ("WPA/WPA2", "WEP", "None"))
         hidden = st.checkbox("Hidden network")
-        border = st.slider("Border Size", min_value=4, max_value=8, value=4, help="White margin in modules; at least four keeps standard QR codes scannable.")
+        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
         scale = st.slider("QR Code Size", min_value=10, max_value=15, value=10)
         submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
 
@@ -166,7 +166,7 @@ elif choice == "WiFi":
 elif choice == "Links/URLs":
     with st.form("Link"):
         url = st.text_input("Link/URL *", placeholder="google.com", help="If you omit http:// or https://, we use https://.")
-        border = st.slider("Border Size", min_value=4, max_value=8, value=4, help="White margin in modules; at least four keeps standard QR codes scannable.")
+        border = st.slider("Border Size", min_value=1, max_value=8, value=4, help="White margin in modules. Four or more is recommended for reliable scanning.")
         scale = st.slider("QR Code Size", min_value=10, max_value=15, value=10)
         submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
 
@@ -212,6 +212,4 @@ if result:
         st.rerun()
 
 st.divider()
-st.caption("Details are processed on the app server. This app does not save them to disk "
-           "or send them to a QR-code service.")
 st.caption("Developed with ❤ by [Thiago Bellotto](https://www.linkedin.com/in/thiago-bellotto/)")
