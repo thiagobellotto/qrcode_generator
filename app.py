@@ -142,11 +142,11 @@ with workspace:
                         min_value=datetime.date(1900, 1, 1), max_value=datetime.date.today())
 
             with st.expander("Appearance & size"):
-                border = st.slider("White margin", 1, 8, 4, key="qr_border",
+                border = st.slider("White margin", 1, 8, 1, key="qr_border",
                     help="Margin in modules. Four or more is recommended for reliable scanning.")
                 size = st.select_slider("PNG size", [512, 1024, 2048], value=1024, key="qr_size",
                     format_func=lambda value: f"Up to {value} × {value} px")
-                st.caption("PNG uses whole QR modules for sharp edges; exact dimensions appear in the preview. "
+                st.caption("PNG uses whole QR modules for sharp edges. "
                            "SVG can be resized without losing quality.")
             snapshot = {"type": choice, "data": data, "border": border, "size": size}
             submitted = st.button("Generate QR code", type="primary", width="stretch", icon=":material/qr_code_2:")
@@ -214,21 +214,21 @@ with workspace:
                 if stale:
                     st.warning("Details changed — generate again to update your QR code.")
                     st.caption("The preview below shows your previous code. Downloads are paused until you regenerate.")
-                else:
-                    st.success("Ready to download")
                 st.image(result["png"], width=320, alt="Generated QR code; its content summary is shown below.")
                 st.caption("Encoded details" if not stale else "Previously encoded details")
                 for line in result["summary"]:
                     st.text(line)
-                st.caption(f"PNG: {result['pixels']} × {result['pixels']} px · SVG: scalable")
-                st.download_button("Download PNG", data=result["png"],
-                    file_name=result["filename"] + ".png", mime="image/png", type="primary",
-                    on_click="ignore", disabled=stale, width="stretch")
-                st.caption("Best for sharing, documents, and everyday use.")
-                st.download_button("Download SVG", data=result["svg"],
-                    file_name=result["filename"] + ".svg", mime="image/svg+xml",
-                    on_click="ignore", disabled=stale, width="stretch")
-                st.caption("Best for printing and resizing. Scan-test before sharing.")
+                png_download, svg_download = st.columns(2, gap="small")
+                with png_download:
+                    st.download_button("Download PNG", data=result["png"],
+                        file_name=result["filename"] + ".png", mime="image/png", type="primary",
+                        on_click="ignore", disabled=stale, width="stretch",
+                        help="Best for sharing, documents, and everyday use.")
+                with svg_download:
+                    st.download_button("Download SVG", data=result["svg"],
+                        file_name=result["filename"] + ".svg", mime="image/svg+xml",
+                        on_click="ignore", disabled=stale, width="stretch",
+                        help="Best for printing and resizing without losing quality.")
                 if choice == "Wi-Fi network":
                     st.caption("Anyone with this QR code can read its Wi-Fi credentials.")
                 st.button("Clear generated code", on_click=clear_result, type="tertiary")
