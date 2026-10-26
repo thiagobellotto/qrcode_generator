@@ -60,6 +60,29 @@ def generate(factory, **kwargs):
     return None
 
 
+def normalize_url(value: str) -> str:
+    """Default scheme-less web addresses to HTTPS; preserve explicit schemes."""
+    value = value.strip()
+    if not value:
+        return value
+    if value.startswith("//"):
+        return "https:" + value
+    try:
+        parsed = urlsplit(value)
+        # urlsplit treats example.com:8080 as a scheme. Recognize host:port too.
+        authority = urlsplit("//" + value)
+        host_with_port = (
+            authority.port is not None
+            and bool(authority.hostname)
+            and ("." in authority.hostname or authority.hostname == "localhost")
+        )
+        if not parsed.scheme or host_with_port:
+            return "https://" + value
+    except ValueError:
+        pass
+    return value
+
+
 def valid_url(value: str) -> bool:
     try:
         parsed = urlsplit(value)
@@ -142,7 +165,7 @@ elif choice == "WiFi":
 
 elif choice == "Links/URLs":
     with st.form("Link"):
-        url = st.text_input("Link/URL *", placeholder="https://example.com")
+        url = st.text_input("Link/URL *", placeholder="google.com", help="If you omit http:// or https://, we use https://.")
         border = st.slider("Border Size", min_value=4, max_value=8, value=4, help="White margin in modules; at least four keeps standard QR codes scannable.")
         scale = st.slider("QR Code Size", min_value=10, max_value=15, value=10)
         submitted = st.form_submit_button("Generate QR Code", type="primary", width="stretch")
@@ -151,11 +174,13 @@ elif choice == "Links/URLs":
         st.session_state.pop("result", None)
         if not url.strip():
             st.error("Please provide a link.")
-        elif not valid_url(url.strip()):
-            st.error("Enter a complete http:// or https:// URL, without spaces.")
         else:
-            qr = generate(segno.make_qr, content=url.strip(), error="m")
-            file_name = "link.png"
+            normalized_url = normalize_url(url)
+            if not valid_url(normalized_url):
+                st.error("Enter a valid website address without spaces (for example, google.com).")
+            else:
+                qr = generate(segno.make_qr, content=normalized_url, error="m")
+                file_name = "link.png"
 
 # Keep the last submitted result through reruns and download without a rerun.
 if qr is not None:
