@@ -1,9 +1,19 @@
 [theme]
-primaryColor="#C34A36"
-backgroundColor="#0D0C0F"
-secondaryBackgroundColor="#2a4a46"
-textColor="#FFFFFF"
-font="sans serif"
+base = "light"
+font = "sans serif"
+
+[theme.light]
+primaryColor = "#087F75"
+backgroundColor = "#FAFAF7"
+secondaryBackgroundColor = "#F0F3F1"
+textColor = "#24332F"
+
+[theme.dark]
+primaryColor = "#087F75"
+backgroundColor = "#111815"
+secondaryBackgroundColor = "#1C2823"
+textColor = "#EDF3EF"
+linkColor = "#68CFC1"
 
 [server]
 port = 8501
