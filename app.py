@@ -1,4 +1,5 @@
 from functools import partial
+from pathlib import Path
 import base64
 import html
 import datetime
@@ -14,7 +15,7 @@ selectbox = partial(st.selectbox, persist_state="session")
 checkbox = partial(st.checkbox, persist_state="session")
 date_input = partial(st.date_input, persist_state="session")
 
-st.set_page_config(page_title="QR Code Generator", page_icon=":material/qr_code_2:", layout="wide")
+st.set_page_config(page_title="QR Code Generator", page_icon=str(Path(__file__).parent / "assets" / "favicon.png"), layout="wide")
 def vcard_name(given_name: str, family_name: str) -> str:
     """Escape components separately; Segno intentionally leaves N unescaped."""
     def escape(value):
@@ -107,7 +108,7 @@ def clear_result():
 def reset_form(choice: str):
     prefix = {"Website link": "link_", "Wi-Fi network": "wifi_", "Contact card": "contact_"}[choice]
     for key in list(st.session_state):
-        if key.startswith(prefix) or key in {"qr_border", "qr_size"}:
+        if key.startswith(prefix):
             del st.session_state[key]
     clear_result()
 
@@ -203,8 +204,8 @@ with workspace:
             previous = st.session_state.get("result")
             current = previous is not None and previous["snapshot"] == snapshot
             submitted = st.button("Generate QR code", type="secondary" if current else "primary", width="stretch", icon=":material/qr_code_2:")
-            st.button("Reset current form", type="tertiary", on_click=reset_form, args=(choice,),
-                      help="Clear this type’s fields and generated code, and reset appearance settings.")
+            st.button("Start over", type="tertiary", on_click=reset_form, args=(choice,),
+                      help="Clear this type’s fields and generated code. Keep appearance settings and other drafts.")
             if submitted:
                 clear_result()
                 qr = None
@@ -321,7 +322,6 @@ with workspace:
                             width="stretch", help="Open the downloaded file in your browser and print. Uses a print-safe white margin.")
                 if choice == "Wi-Fi network":
                     st.caption("Anyone with this QR code can read its Wi-Fi credentials.")
-                st.button("Clear generated code", on_click=clear_result, type="tertiary")
 
     st.divider()
     st.caption("Made by [Thiago Bellotto](https://thiagobellotto.com) · "
